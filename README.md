@@ -1,25 +1,20 @@
-# Low-Rank Autoencoder for CAN Bus Intrusion Detection
+# LRAE: Low-Rank Autoencoder for Real-Time CAN Bus Intrusion Detection
 
-This repository implements the **Low-Rank Autoencoder (LRAE)** for anomaly detection in **Controller Area Network (CAN) bus** systems. It demonstrates significant improvements in efficiency and performance compared to the traditional **Standard Autoencoder (SAE)**.
+This repository contains the implementation of the Low-Rank Autoencoder (LRAE) for real-time efficient intrusion detection in Controller Area Network (CAN) bus systems, as presented in the paper accepted at WINCOM'2025. The code is designed to demonstrate the model's efficiency and performance improvements over traditional Standard Autoencoders (SAE).
 
-## Key Contributions:
-- 91.3% reduction in model parameters (2,010 vs 23,198).
-- 9× lower memory footprint (0.01 MB vs 0.09 MB).
-- Faster training convergence: 50% faster than SAE.
-- Enhanced anomaly detection with significant improvements in precision, recall, and F1-score across multiple test scenarios.
+## Overview
+- **Paper**: "LRAE: A Low-Rank Autoencoder for Real-Time Efficient CAN Bus Intrusion Detection" by Nadim Ahmed et al.
+- **Conference**: The 12th International Conference on Wireless Networks and Mobile Communications (WINCOM'2025), Riyadh, Saudi Arabia, November 25-27, 2025.
+- **Authors**: Nadim Ahmed, Md. Ashraful Babu, Md. Manir Hossain Mollah, Md. Mortuza Ahmmed, M. Mostafizur Rahman, Mufti Mahmud.
 
-## Requirements
-- Python 3.6+
-- PyTorch
-- numpy
-- pandas
-- scikit-learn
-- matplotlib
-- seaborn
+## Repository Structure
+- `main.py`: Main script to run the LRAE and SAE models, including training, evaluation, and visualization.
+- `requirements.txt`: List of dependencies required to run the code.
+- `results/`: Directory to store output files (e.g., CSV results, plots).
+- `data/`: Directory for SynCAN dataset (to be placed manually).
 
 ## Installation
-Clone the repository and install the required dependencies:
-```bash
-git clone https://github.com/yourusername/LowRankAutoencoder_CAN_Bus_Intrusion_Detection.git
-cd LowRankAutoencoder_CAN_Bus_Intrusion_Detection
-pip install -r requirements.txt
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/lrae-can-intrusion-detection.git
+   cd lrae-can-intrusion-detection
