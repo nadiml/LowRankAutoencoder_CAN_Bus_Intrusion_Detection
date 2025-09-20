@@ -19,12 +19,14 @@ import time
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 def set_seed(seed=42):
     torch.manual_seed(seed)
     np.random.seed(seed)
 set_seed(42)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -280,7 +282,7 @@ def plot_training_curves(histories, model_names):
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results/training_curves.png")
+    plt.savefig("training_curves.png")
     plt.close()
 
 def plot_confusion_matrices_horizontal(results_df):
@@ -298,7 +300,7 @@ def plot_confusion_matrices_horizontal(results_df):
             ax.set_xlabel("Predicted")
             ax.set_ylabel("True")
     plt.tight_layout()
-    plt.savefig("results/confusion_matrices_horizontal.png")
+    plt.savefig("confusion_matrices_horizontal.png")
     plt.close()
 
 def plot_score_distributions(results_df):
@@ -315,7 +317,7 @@ def plot_score_distributions(results_df):
     g.set_axis_labels("Anomaly Score", "Density")
     plt.subplots_adjust(top=0.92)
     g.fig.suptitle("Anomaly Score Distributions (per Testset/Model)", fontsize=14)
-    g.savefig("results/score_distributions_facet.png")
+    g.savefig("score_distributions_facet.png")
     plt.close()
 
 def plot_score_boxplots(results_df):
@@ -331,7 +333,7 @@ def plot_score_boxplots(results_df):
     plt.title("Anomaly Score Boxplot by Testset and Model")
     plt.grid(True, axis='y', alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results/score_boxplots.png")
+    plt.savefig("score_boxplots.png")
     plt.close()
 
 def plot_threshold_histogram(results_df):
@@ -348,7 +350,7 @@ def plot_threshold_histogram(results_df):
     sns.barplot(data=df, x="Testset", y="Threshold", hue="Model")
     plt.title("Chosen Anomaly Thresholds per Testset/Model")
     plt.tight_layout()
-    plt.savefig("results/threshold_histogram.png")
+    plt.savefig("threshold_histogram.png")
     plt.close()
 
 def plot_inference_time_bar(results_df):
@@ -365,7 +367,7 @@ def plot_inference_time_bar(results_df):
     sns.barplot(data=df, x="Testset", y="Inference time (s)", hue="Model")
     plt.title("Inference Time per Testset/Model")
     plt.tight_layout()
-    plt.savefig("results/inference_time_bar.png")
+    plt.savefig("inference_time_bar.png")
     plt.close()
 
 def plot_f1_vs_threshold(results_df):
@@ -384,7 +386,7 @@ def plot_f1_vs_threshold(results_df):
     plt.title("F1 Score vs. Threshold")
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results/f1_vs_threshold.png")
+    plt.savefig("f1_vs_threshold.png")
     plt.close()
 
 def plot_precision_recall_bar(results_df):
@@ -395,7 +397,7 @@ def plot_precision_recall_bar(results_df):
                 "Testset": row['testset'],
                 "Model": model,
                 "Precision": float(row.get(f'{model.lower()}_precision', np.nan)),
-                "Recall": float(recall_score(y, preds, zero_division=0))
+                "Recall": float(row.get(f'{model.lower()}_recall', np.nan))
             })
     df = pd.DataFrame(data)
     df = df.melt(id_vars=["Testset", "Model"], value_vars=["Precision", "Recall"], var_name="Metric", value_name="Value")
@@ -404,13 +406,13 @@ def plot_precision_recall_bar(results_df):
     plt.title("Precision and Recall by Testset and Model")
     plt.ylim(0,1)
     plt.tight_layout()
-    plt.savefig("results/precision_recall_bar.png")
+    plt.savefig("precision_recall_bar.png")
     plt.close()
 
 def plot_f1_bar(results_df):
     data = []
     for _, row in results_df.iterrows():
-        for model in [' SCS['LowRank', 'Standard']:
+        for model in ['LowRank', 'Standard']:
             data.append({
                 "Testset": row['testset'],
                 "Model": model,
@@ -421,7 +423,7 @@ def plot_f1_bar(results_df):
     sns.barplot(data=df, x="Testset", y="F1", hue="Model")
     plt.title("F1 Score per Testset and Model")
     plt.tight_layout()
-    plt.savefig("results/f1_bar.png")
+    plt.savefig("f1_bar.png")
     plt.close()
 
 def plot_ap_bar(results_df):
@@ -438,7 +440,7 @@ def plot_ap_bar(results_df):
     sns.barplot(data=df, x="Testset", y="AP", hue="Model")
     plt.title("Average Precision per Testset and Model")
     plt.tight_layout()
-    plt.savefig("results/ap_bar.png")
+    plt.savefig("ap_bar.png")
     plt.close()
 
 def plot_pr_roc_curves(results_df):
@@ -481,10 +483,10 @@ def plot_pr_roc_curves(results_df):
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("results/pr_roc_curves.png")
+    plt.savefig("pr_roc_curves.png")
     plt.close()
 
-def plot_performance_table(results_df, output_dir='results'):
+def plot_performance_table(results_df, output_dir='.'):
     metrics = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc', 'pr_auc']
     records = []
     for _, row in results_df.iterrows():
@@ -502,12 +504,12 @@ def plot_performance_table(results_df, output_dir='results'):
     tbl.set_fontsize(10)
     tbl.auto_set_column_width(col=list(range(len(df_perf.columns))))
     plt.title("Performance Summary Table")
-    plt.savefig(f"{output_dir}/performance_table.png")
+    plt.savefig("performance_table.png")
     plt.close()
 
 def comprehensive_visualization(
     history_lowrank, history_standard,
-    results_csv="results/results_summary.csv"
+    results_csv="results_summary.csv"
 ):
     results_df = pd.read_csv(results_csv)
     plot_training_curves(
@@ -530,7 +532,7 @@ def comprehensive_visualization(
 
 def main():
     syncan_path = None
-    for dirname, _, filenames in os.walk('data'):
+    for dirname, _, filenames in os.walk('/kaggle/input'):
         for filename in filenames:
             filepath = os.path.join(dirname, filename)
             if 'SynCAN-master' in filepath and filepath.endswith('.csv'):
@@ -542,11 +544,13 @@ def main():
         print("Could not find SynCAN dataset!")
         return None
     print(f"Found SynCAN data at: {syncan_path}")
+
     train_files = [os.path.join(syncan_path, d, f"{d}.csv") for d in ["train_1"]]
     test_files = [os.path.join(syncan_path, d, f"{d}.csv") for d in [
         "test_normal","test_plateau","test_continuous","test_playback","test_suppress","test_flooding"]]
     train_df = pd.concat([pd.read_csv(f) for f in train_files], ignore_index=True)
     test_dfs = {os.path.basename(f).split('.')[0]: pd.read_csv(f) for f in test_files}
+
     print("Extracting features ...")
     X_train, y_train = extract_sequences(train_df, seq_len=64, stride=8, max_seqs=6000)
     scaler = StandardScaler().fit(X_train)
@@ -556,12 +560,14 @@ def main():
     val_ds = CANSeqDataset(X_val, y_val)
     train_loader = DataLoader(train_ds, batch_size=128, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=256)
+
     print("PARAM COUNT AND MEMORY (MB):")
     input_dim = X_train.shape[1]
     lowrank_model = LowRankAutoencoder(input_dim=input_dim, hidden_dims=[128,64], latent_dim=16, rank_factor=8, dropout=0.18).to(device)
     std_model = StandardAutoencoder(input_dim=input_dim, hidden_dims=[128,64], latent_dim=16, dropout=0.18).to(device)
     print(f"LowRank: params={lowrank_model.count_params():,} mem={mem_MB(lowrank_model):.2f}MB")
     print(f"Standard: params={std_model.count_params():,} mem={mem_MB(std_model):.2f}MB")
+
     print("Training Low-Rank Autoencoder ...")
     t0 = time.time()
     lowrank_model, history_lowrank = train_autoencoder(lowrank_model, train_loader, val_loader, nepochs=32, lr=2e-3, wd=2e-4, patience=8, use_focal=True)
@@ -569,7 +575,9 @@ def main():
     print("Training Standard Autoencoder ...")
     std_model, history_standard = train_autoencoder(std_model, train_loader, val_loader, nepochs=32, lr=2e-3, wd=2e-4, patience=8, use_focal=True)
     t2 = time.time()
+
     print(f"LowRankAE train time: {t1-t0:.2f}s, StandardAE: {t2-t1:.2f}s")
+
     results = []
     for k, df in test_dfs.items():
         print(f"\nEvaluating on {k} ...")
@@ -577,12 +585,14 @@ def main():
         X_test = scaler.transform(X_test)
         test_ds = CANSeqDataset(X_test, y_test)
         test_loader = DataLoader(test_ds, batch_size=256)
+
         lowrank_metrics, lowrank_scores, y_true, _ = eval_model(
             lowrank_model, test_loader, optimize_thresh=True, measure_time=True, return_curves=True)
         std_metrics, std_scores, _, _ = eval_model(
             std_model, test_loader, optimize_thresh=True, measure_time=True, return_curves=True)
-        print(f"LowRankAE: acc={lowrank_metrics['accuracy']:.3f} prec={lowrank_metrics['precision']:.3f} rec={lowrank_metrics['recall']:.3f} f1={lowrank_metrics['f1']:.3f} roc_auc={lowrank_metrics['roc_auc']:.3f} pr_auc={lowrank_metrics['pr_auc']:.3f} AP={lowrank_metrics['ap']:.3f} inference_time={lowrank_metrics['inference_time']:.3f}s total_time={lowrank_metrics['total_time']:.3f}s")
-        print(f"StandardAE: acc={std_metrics['accuracy']:.3f} prec={std_metrics['precision']:.3f} rec={std_metrics['recall']:.3f} f1={std_metrics['f1']:.3f} roc_auc={std_metrics['roc_auc']:.3f} pr_auc={std_metrics['pr_auc']:.3f} AP={std_metrics['ap']:.3f} inference_time={std_metrics['inference_time']:.3f}s total_time={std_metrics['total_time']:.3f}s")
+
+        print(f"LowRankAE: acc={lowrank_metrics['accuracy']:.3f}  prec={lowrank_metrics['precision']:.3f}  rec={lowrank_metrics['recall']:.3f}  f1={lowrank_metrics['f1']:.3f}  roc_auc={lowrank_metrics['roc_auc']:.3f}  pr_auc={lowrank_metrics['pr_auc']:.3f}  AP={lowrank_metrics['ap']:.3f} inference_time={lowrank_metrics['inference_time']:.3f}s total_time={lowrank_metrics['total_time']:.3f}s")
+        print(f"StandardAE: acc={std_metrics['accuracy']:.3f}  prec={std_metrics['precision']:.3f}  rec={std_metrics['recall']:.3f}  f1={std_metrics['f1']:.3f}  roc_auc={std_metrics['roc_auc']:.3f}  pr_auc={std_metrics['pr_auc']:.3f}  AP={std_metrics['ap']:.3f} inference_time={std_metrics['inference_time']:.3f}s total_time={std_metrics['total_time']:.3f}s")
         results.append({
             "testset": k,
             "lowrank_accuracy": lowrank_metrics['accuracy'],
@@ -617,14 +627,16 @@ def main():
             "standard_totaltime": std_metrics['total_time'],
         })
     df_results = pd.DataFrame(results)
-    df_results.to_csv("results/results_summary.csv", index=False)
+    df_results.to_csv("results_summary.csv", index=False)
+
     # Save histories for visualization
-    pd.DataFrame(history_lowrank).to_csv("results/history_lowrank.csv", index=False)
-    pd.DataFrame(history_standard).to_csv("results/history_standard.csv", index=False)
+    pd.DataFrame(history_lowrank).to_csv("history_lowrank.csv", index=False)
+    pd.DataFrame(history_standard).to_csv("history_standard.csv", index=False)
+
     # ---- VISUALIZATION ----
     comprehensive_visualization(
         history_lowrank, history_standard,
-        results_csv="results/results_summary.csv"
+        results_csv="results_summary.csv"
     )
 
 if __name__ == "__main__":
