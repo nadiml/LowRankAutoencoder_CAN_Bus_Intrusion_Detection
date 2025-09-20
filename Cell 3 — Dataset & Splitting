@@ -1,0 +1,16 @@
+class CANSeqDataset(Dataset):
+    def __init__(self, X, y, scaler=None):
+        self.X = scaler.transform(X) if scaler is not None else X
+        self.y = y
+    def __len__(self): return len(self.X)
+    def __getitem__(self, idx): return torch.from_numpy(self.X[idx]), self.y[idx]
+
+def balance_and_split(X, y, test_size=0.15):
+    idx1 = np.where(y==1)[0]
+    idx0 = np.where(y==0)[0]
+    n1 = max(len(idx1), int(0.25*len(idx0)))
+    if len(idx1)>0:
+        idx1 = np.random.choice(idx1, n1, replace=True)
+    idx = np.concatenate([idx0, idx1]); np.random.shuffle(idx)
+    Xb, yb = X[idx], y[idx]
+    return train_test_split(Xb, yb, test_size=test_size, stratify=yb, random_state=42)
