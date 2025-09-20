@@ -1,0 +1,38 @@
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.7, gamma=2): super().__init__(); self.alpha=alpha; self.gamma=gamma
+    def forward(self, input, target):
+        loss = (input-target)**2
+        pt = torch.exp(-loss)
+        focal_weight = self.alpha*(1-pt)**self.gamma
+        return (focal_weight*loss).mean()
+
+def train_autoencoder(model, loader, valloader, nepochs=30, lr=2e-3, wd=2e-4, patience=7, use_focal=True):
+    optimz = optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+    criterion = FocalLoss() if use_focal else nn.MSELoss()
+    best_loss, wait, best_state = float('inf'), 0, None
+    history = {'train_loss': [], 'val_loss': []}
+    for epoch in range(nepochs):
+        model.train(); tr_loss=[]
+        for Xb,_ in loader:
+            Xb = Xb.to(device)
+            output,_ = model(Xb)
+            loss = criterion(output,Xb)
+            if not torch.isfinite(loss): continue
+            optimz.zero_grad(); loss.backward(); optimz.step()
+            tr_loss.append(loss.item())
+        model.eval(); val_loss=[]
+        with torch.no_grad():
+            for Xb,_ in valloader:
+                Xb = Xb.to(device)
+                output,_ = model(Xb)
+                loss = criterion(output,Xb)
+                if not torch.isfinite(loss): continue
+                val_loss.append(loss.item())
+        mean_tr, mean_val = np.mean(tr_loss) if tr_loss else float('inf'), np.mean(val_loss) if val_loss else float('inf')
+        history['train_loss'].append(mean_tr); history['val_loss'].append(mean_val)
+        if not np.isnan(mean_val) and mean_val < best_loss: best_loss, best_state, wait = mean_val, model.state_dict(), 0
+        else: wait+=1
+        print(f"Epoch {epoch+1} train_loss={mean_tr:.5f} val_loss={mean_val:.5f}")
+        if wait >= patience: break
+    if best_state: model.load_state_dict(best_state)
+    return model, history
