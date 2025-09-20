@@ -1,0 +1,48 @@
+class TimeFreqFeatExtractor:
+    def extract_features(self, x):
+        x = np.asarray(x)
+        if np.any(np.isnan(x)) or np.any(np.isinf(x)):
+            x = np.nan_to_num(x)
+        feats = [
+            np.mean(x), np.std(x), np.max(x), np.min(x),
+            np.median(x), np.percentile(x, 25), np.percentile(x, 75),
+            np.max(x)-np.min(x), np.sum(np.diff(x)!=0)/(len(x)+1e-6)
+        ]
+        xf = np.abs(fft(x))[:len(x)//2]
+        feats += [
+            np.mean(xf), np.std(xf), np.max(xf),
+            np.sum(xf > np.mean(xf)+2*np.std(xf)),
+            np.sum(xf < np.mean(xf)-2*np.std(xf))
+        ]
+        return np.nan_to_num(feats).astype(np.float32)
+
+def extract_sequences(df, seq_len=64, stride=8, max_seqs=4000, augment=True):
+    sig_cols = [c for c in df.columns if 'Signal' in c]
+    label_col = 'Label' if 'Label' in df.columns else None
+    extractor = TimeFreqFeatExtractor()
+    X, y = [], []
+    ids = df['ID'].unique()
+    seqs_per_id = max(1, max_seqs // max(1,len(ids)))
+    for cid in ids:
+        sdf = df[df['ID']==cid]
+        arr = sdf[sig_cols].values
+        labels = sdf[label_col].values if label_col else np.zeros(len(sdf))
+        for i in range(0, len(sdf)-seq_len+1, stride):
+            window = arr[i:i+seq_len].flatten()
+            feats = extractor.extract_features(window)
+            label = 1 if np.any(labels[i:i+seq_len]) else 0
+            if np.any(np.isnan(feats)) or np.any(np.isinf(feats)):
+                continue
+            X.append(feats)
+            y.append(label)
+            if label==1 and augment:
+                for _ in range(2):
+                    X.append(feats + np.random.normal(0, 0.05, size=feats.shape)); y.append(1)
+            elif label==0 and augment and np.random.rand()<0.05:
+                X.append(feats + np.random.normal(0, 0.01, size=feats.shape)); y.append(0)
+            if len(X) >= max_seqs: break
+        if len(X) >= max_seqs: break
+    X = np.array(X, dtype=np.float32)
+    y = np.array(y, dtype=np.int64)
+    mask = ~np.isnan(X).any(axis=1) & ~np.isinf(X).any(axis=1)
+    return X[mask], y[mask]
